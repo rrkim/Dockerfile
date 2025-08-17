@@ -28,9 +28,9 @@ RUN CHROME_MAJOR="$(google-chrome --version | awk '{print $3}' | cut -d. -f1)" \
  && curl -sSL "$DRIVER_ZIP_URL" -o /tmp/chromedriver.zip \
  && unzip /tmp/chromedriver.zip -d /usr/bin/ \
  && mv /usr/bin/chromedriver-linux64/chromedriver /usr/bin/chromedriver \
- && rmdir /usr/bin/chromedriver-linux64 \
+ && rm -rf /usr/bin/chromedriver-linux64 \
  && chmod +x /usr/bin/chromedriver \
- && rm -f /tmp/chromedriver.zip
+ && rm -rf /tmp/chromedriver.zip
   
 WORKDIR /home/app/
 
