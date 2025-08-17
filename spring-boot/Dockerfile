@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Seoul
 
-RUN apt-get update && apt-get install -y ssh vim curl wget git net-tools zip tar tzdata
+RUN apt-get update && apt-get install -y ssh vim curl wget git net-tools zip tar tzdata gnupg jq
 RUN mkdir -p /run/sshd
 
 RUN apt-get update && apt-get install -y \
@@ -14,6 +14,24 @@ ENV LANG=ko_KR.UTF-8 \
     LANGUAGE=ko_KR:ko \
     LC_ALL=ko_KR.UTF-8
 
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb stable main" \
+     > /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update \
+  && apt-get install -y google-chrome-stable \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN CHROME_MAJOR="$(google-chrome --version | awk '{print $3}' | cut -d. -f1)" \
+ && JSON_URL="https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json" \
+ && DRIVER_ZIP_URL="$(curl -sS "$JSON_URL" \
+      | jq -r --arg m "$CHROME_MAJOR" '.milestones[$m].downloads.chromedriver[] | select(.platform=="linux64") | .url')" \
+ && curl -sSL "$DRIVER_ZIP_URL" -o /tmp/chromedriver.zip \
+ && unzip /tmp/chromedriver.zip -d /usr/bin/ \
+ && mv /usr/bin/chromedriver-linux64/chromedriver /usr/bin/chromedriver \
+ && rmdir /usr/bin/chromedriver-linux64 \
+ && chmod +x /usr/bin/chromedriver \
+ && rm -f /tmp/chromedriver.zip
+  
 WORKDIR /home/app/
 
 RUN mkdir -p /home/app/bin/
